@@ -13,6 +13,7 @@ const Account = () => {
 	}, []);
 
 	const [selectedHost, setSelectedHost] = React.useState(null);
+
 	const [linksList, setLinksList] = React.useState("");
 
 	const [ShowAddHosts, setShowAddHosts] = React.useState(false);
@@ -86,7 +87,7 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (res) => {
-				hostnamesRefetch();
+				window.location.reload();
 			},
 		}
 	);
@@ -100,7 +101,7 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (res) => {
-				hostnamesRefetch();
+				window.location.reload();
 			},
 		}
 	);
@@ -113,8 +114,6 @@ const Account = () => {
 		const value = parseInt(event.target.value);
 
 		let findedHost = hostnamesData.find((h) => h.id === value);
-
-		console.log(findedHost);
 
 		setLinksList(JSON.parse(findedHost.rlinks).join("\n"));
 		setSelectedHost(value);
@@ -475,130 +474,128 @@ const Account = () => {
 									</div>
 									{/* start IF */}
 
-									{data?.data.length > 0 && (
-										<form
-											name="linksHost"
-											method="post"
-											autoComplete="off"
-											onSubmit={updateHostname}
-										>
-											<div>
-												<div className="row">
-													<div className="col-lg-6">
-														<div className="form-group focused">
-															<label
-																className="form-control-label"
-																htmlFor="input-username"
-															>
-																Hostnames
-															</label>
-															<select
-																id="current_hosts"
-																name="host"
-																className="form-control"
-																onChange={
-																	handleSelect
-																}
-															>
-																{data?.data
-																	.length ===
-																	0 && (
-																	<option
-																		data-id
-																		defaultValue="1"
-																	>
-																		select
-																		hostname
-																	</option>
-																)}
-																{/* start map */}
-																{data?.data &&
-																	data?.data.map(
-																		(
-																			host,
-																			index
-																		) => (
-																			<option
-																				key={
-																					index
-																				}
-																				value={
-																					host?.id
-																				}
-																				data-id={
-																					host?.rlinks
-																				}
-																			>
-																				{
-																					host?.host
-																				}
-																			</option>
-																		)
-																	)}
-																{/* end map */}
-															</select>
-														</div>
-													</div>
-													<div className="col-lg-6">
-														<div className="form-group">
-															<label
-																className="form-control-label"
-																htmlFor="input-email"
-															>
-																Scampages Links
-															</label>
-															<textarea
-																rows={6}
-																id="links_cc"
-																name="links"
-																className="form-control form-control-alternative"
-																placeholder="scampages links related to the hostname"
-																defaultValue={
-																	linksList
-																}
-															/>
-														</div>
-														<button
-															style={{
-																float: "right",
-																marginBottom:
-																	"5%",
-																marginTop: "5%",
-																marginLeft:
-																	"3%",
-															}}
-															type="submit"
-															className="btn btn-info"
-															name="action"
-															data-action="update"
-															id="upbtn"
+									<form
+										name="linksHost"
+										method="post"
+										autoComplete="off"
+										onSubmit={updateHostname}
+										className={` ${
+											data?.data.length == 0
+												? "hidden"
+												: ""
+										}`}
+									>
+										<div>
+											<div className="row">
+												<div className="col-lg-6">
+													<div className="form-group focused">
+														<label
+															className="form-control-label"
+															htmlFor="input-username"
 														>
-															Update Links
-														</button>
-														<button
-															id="rmbtn"
-															type="button"
-															data-action="delete"
-															className="btn btn-danger"
-															onClick={(e) =>
-																removeHostname(
-																	e
-																)
+															Hostnames
+														</label>
+														<select
+															id="current_hosts"
+															name="host"
+															className="form-control"
+															onChange={
+																handleSelect
 															}
-															style={{
-																float: "right",
-																marginBottom:
-																	"5%",
-																marginTop: "5%",
-															}}
 														>
-															Remove Hostname
-														</button>
+															{data?.data
+																.length ===
+																0 && (
+																<option
+																	data-id
+																	defaultValue="1"
+																>
+																	select
+																	hostname
+																</option>
+															)}
+															{/* start map */}
+															{data?.data &&
+																data?.data.map(
+																	(
+																		host,
+																		index
+																	) => (
+																		<option
+																			key={
+																				index
+																			}
+																			value={
+																				host?.id
+																			}
+																			data-id={
+																				host?.rlinks
+																			}
+																		>
+																			{
+																				host?.host
+																			}
+																		</option>
+																	)
+																)}
+															{/* end map */}
+														</select>
 													</div>
 												</div>
+												<div className="col-lg-6">
+													<div className="form-group">
+														<label
+															className="form-control-label"
+															htmlFor="input-email"
+														>
+															Scampages Links
+														</label>
+														<textarea
+															rows={6}
+															id="links_cc"
+															name="links"
+															className="form-control form-control-alternative"
+															placeholder="scampages links related to the hostname"
+															defaultValue={
+																linksList
+															}
+														/>
+													</div>
+													<button
+														style={{
+															float: "right",
+															marginBottom: "5%",
+															marginTop: "5%",
+															marginLeft: "3%",
+														}}
+														type="submit"
+														className="btn btn-info"
+														name="action"
+														data-action="update"
+														id="upbtn"
+													>
+														Update Links
+													</button>
+													<button
+														id="rmbtn"
+														type="button"
+														data-action="delete"
+														className="btn btn-danger"
+														onClick={(e) =>
+															removeHostname(e)
+														}
+														style={{
+															float: "right",
+															marginBottom: "5%",
+															marginTop: "5%",
+														}}
+													>
+														Remove Hostname
+													</button>
+												</div>
 											</div>
-										</form>
-									)}
+										</div>
+									</form>
 									{/* end if */}
 								</div>
 							</div>

@@ -730,6 +730,11 @@ main {
 display: block;
 }
 
+.hidden{
+
+  display: none   !important;
+}
+
 main {
 overflow: hidden;
 }
