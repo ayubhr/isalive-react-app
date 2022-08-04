@@ -2,20 +2,26 @@ import React, { createContext, useContext } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { api, getToken, clearToken } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
+import Loading from "react-fullscreen-loading";
 
 const AuthContext = React.createContext();
 
 AuthContext.displayName = "AuthContext";
 
 function AuthProvider(props) {
-  const [user, setUser] = React.useState({
+  const [userData, setUserData] = React.useState({
     user: null,
     token: null,
   });
 
   let navigate = useNavigate();
 
-  const { data, refetch, isLoading } = useQuery(
+  const {
+    data,
+    refetch: refreshUser,
+    isLoading,
+    isFetching,
+  } = useQuery(
     "get-me",
     () =>
       api.get("get-me", {
@@ -25,7 +31,7 @@ function AuthProvider(props) {
       }),
     {
       onSuccess: (data) => {
-        setUser({ user: data.user, token: data.token });
+        setUserData({ user: data.user, token: data.token });
       },
 
       onError: (status) => {
@@ -37,7 +43,7 @@ function AuthProvider(props) {
 
   const bootstrapMe = () => {
     if (getToken()) {
-      refetch();
+      refreshUser();
     }
   };
 
@@ -46,17 +52,21 @@ function AuthProvider(props) {
   }, []);
 
   const logout = () => {
-    setUser({ user: null, token: null });
+    setUserData({ user: null, token: null });
     clearToken();
     navigate("/");
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ ...user, setUser, logout: logout }}
-      {...props}
-    />
+  const value = React.useMemo(
+    () => ({ userData, setUserData, refreshUser, logout }),
+    [userData, setUserData, refreshUser, logout]
   );
+
+  if (isLoading || isFetching) {
+    return <Loading loading background="#f8f9fe" loaderColor="#dc3545" />;
+  }
+
+  return <AuthContext.Provider value={value} {...props} />;
 }
 
 function useAuth() {

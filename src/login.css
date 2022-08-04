@@ -2370,7 +2370,16 @@
 	width: 100%;
 }
 
+#contact {
 
+	display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: space-between;
+    justify-content: center;
+    margin-top: 10px;
+    align-items: center;
+}
 
 /*[ Hover ]
 -----------------------------------------------------------

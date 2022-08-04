@@ -1,15 +1,19 @@
 import React from "react";
+import { SiTelegram, SiSkype } from "react-icons/si";
 import { api, setToken, validateUsername } from "../utils/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/auth/auth-context";
 import { useMutation } from "react-query";
+import Loading from "react-fullscreen-loading";
 
 const Login = () => {
-	const { setUser } = useAuth();
+	const { setUserData } = useAuth();
+
+	const [showContact, setShowContact] = React.useState(false);
 
 	let navigate = useNavigate();
 	React.useEffect(() => {
-		window.document.title = "Login - isAlive ";
+		window.document.title = "login - isAlive ";
 	}, []);
 
 	const [passwordShown, setPasswordShown] = React.useState(false);
@@ -27,8 +31,8 @@ const Login = () => {
 	} = useMutation(async (data) => api.post("login", data), {
 		onSuccess: (res) => {
 			setToken(res.token);
-			setUser({ user: res.user, token: res.token });
-			navigate("/account");
+			setUserData({ user: res.user, token: res.token });
+			navigate("/");
 		},
 	});
 
@@ -58,6 +62,9 @@ const Login = () => {
 
 	return (
 		<>
+			{isLoading && (
+				<Loading loading background="#f8f9fe" loaderColor="#dc3545" />
+			)}
 			<div className="limiter">
 				<div className="container-login100">
 					<div className="wrap-login100">
@@ -124,57 +131,40 @@ const Login = () => {
 								className="w-full text-center"
 								style={{ paddingTop: "27px" }}
 							>
-								<a href="#" id="request" className="txt3">
+								<button
+									onClick={() => setShowContact(!showContact)}
+									type="button"
+									className="txt3"
+								>
 									Request an account
-								</a>
+								</button>
 								<br />
-								<div id="contact" style={{ display: "none" }}>
-									<a
-										title="Telegram"
-										href="https://t.me/fg_anonyme"
-										target="_blank"
-									>
-										<img
-											src="/assets/images/icons/telegram.svg"
-											style={{
-												width: "33px",
-												height: "34px",
-												borderRadius: "54%",
-												cursor: "pointer",
-											}}
-										/>
-									</a>
-									<a
-										title="Facebook"
-										href="https://fb.me/rulez.cer"
-										target="_blank"
-									>
-										<img
-											src="/assets/images/icons/facebook.svg"
-											style={{
-												width: "34px",
-												height: "35px",
-												borderRadius: "54%",
-												cursor: "pointer",
-											}}
-										/>
-									</a>
-									<a
-										title="Email"
-										href="mailto:rzlt.xtn@gmail.com"
-										target="_blank"
-									>
-										<img
-											src="/assets/images/icons/email.svg"
-											style={{
-												width: "35px",
-												height: "34px",
-												borderRadius: "54%",
-												cursor: "pointer",
-											}}
-										/>
-									</a>
-								</div>
+								{showContact && (
+									<div id="contact">
+										<a
+											title="Telegram"
+											href="https://t.me/fg_anonyme"
+											target="_blank"
+										>
+											<SiTelegram
+												color="#469FE4"
+												style={{
+													width: "35px",
+													height: "34px",
+												}}
+											/>
+										</a>
+										<a title="Skype" href="skype:a.xtn_1?chat" target="_blank">
+											<SiSkype
+												color="rgb(43 143 220)"
+												style={{
+													width: "35px",
+													height: "34px",
+												}}
+											/>
+										</a>
+									</div>
+								)}
 							</div>
 						</form>
 						<div

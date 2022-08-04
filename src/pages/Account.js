@@ -1,13 +1,16 @@
 import React from "react";
+import { FaHeart, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, getToken, isValidURL } from "../utils/utils";
 import { useAuth } from "../context/auth/auth-context";
 
 const Account = () => {
-	const { user, logout } = useAuth();
+	const { userData, refreshUser, logout } = useAuth();
 
-	const [isCU, setIsCU] = React.useState(false);
+	React.useEffect(() => {
+		window.document.title = "account - isAlive ";
+	}, []);
 
 	const [selectedHost, setSelectedHost] = React.useState(null);
 	const [linksList, setLinksList] = React.useState("");
@@ -28,9 +31,13 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (data) => {
-				let listedLinks = JSON.parse(data.data[0].rlinks).join("\n");
-				setSelectedHost(data.data[0].id);
-				setLinksList(listedLinks);
+				if (data.data.length > 0) {
+					let listedLinks = JSON.parse(data.data[0].rlinks).join(
+						"\n"
+					);
+					setSelectedHost(data.data[0].id);
+					setLinksList(listedLinks);
+				}
 			},
 		}
 	);
@@ -49,7 +56,7 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (tokenData) => {
-				setIsCU(true);
+				refreshUser();
 			},
 			enabled: false,
 		}
@@ -64,7 +71,8 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (res) => {
-				window.location.reload();
+				hostnamesRefetch();
+				document.getElementById("addhostform").reset();
 			},
 		}
 	);
@@ -78,7 +86,7 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (res) => {
-				window.location.reload();
+				hostnamesRefetch();
 			},
 		}
 	);
@@ -92,7 +100,7 @@ const Account = () => {
 			}),
 		{
 			onSuccess: (res) => {
-				window.location.reload();
+				hostnamesRefetch();
 			},
 		}
 	);
@@ -105,6 +113,8 @@ const Account = () => {
 		const value = parseInt(event.target.value);
 
 		let findedHost = hostnamesData.find((h) => h.id === value);
+
+		console.log(findedHost);
 
 		setLinksList(JSON.parse(findedHost.rlinks).join("\n"));
 		setSelectedHost(value);
@@ -188,7 +198,7 @@ const Account = () => {
 								color: "#dc3545",
 							}}
 						>
-							{user?.username}
+							{userData?.user?.username}
 						</i>
 					</h2>
 					<div className="row">
@@ -231,7 +241,8 @@ const Account = () => {
 														className="form-control form-control-alternative"
 														placeholder="Username"
 														defaultValue={
-															user?.username
+															userData?.user
+																?.username
 														}
 														readOnly
 													/>
@@ -252,9 +263,7 @@ const Account = () => {
 														className="form-control form-control-alternative"
 														placeholder="token"
 														defaultValue={
-															isCU
-																? tokenData?.uuid
-																: user?.uuid
+															userData?.user?.uuid
 														}
 														type="text"
 														readOnly
@@ -315,35 +324,45 @@ const Account = () => {
 														}}
 													>
 														Add Hostname{" "}
-														<i>
-															(website you use to
-															do the redirection)
-														</i>
+														<p className="small text-muted">
+															<i>
+																(website you use
+																to do the
+																redirection)
+															</i>
+														</p>
 													</label>
-													<span className="input-group-btn">
-														<button
-															type="button"
-															className="btn btn-success btn-number"
-															value="+"
-															style={{
-																fontSize:
-																	"13px",
-																backgroundColor:
-																	"#28a745bd !important",
-															}}
-															onClick={() =>
-																setShowAddHosts(
-																	!ShowAddHosts
-																)
-															}
-														>
-															<span className="input-group-btn">
-																<span className="input-group-btn">
-																	+
-																</span>
-															</span>
-														</button>
-													</span>
+													<button
+														type="button"
+														className="btn btn-success btn-number"
+														value="+"
+														style={{
+															float: "right",
+															backgroundColor:
+																"#28a745bd !important",
+														}}
+														onClick={() =>
+															setShowAddHosts(
+																!ShowAddHosts
+															)
+														}
+													>
+														{ShowAddHosts ? (
+															<FaChevronUp
+																style={{
+																	height: "20px",
+																	width: "9px",
+																}}
+															/>
+														) : (
+															<FaChevronDown
+																style={{
+																	height: "20px",
+																	width: "9px",
+																}}
+															/>
+														)}
+													</button>
 												</div>
 											</div>
 										</div>
@@ -356,8 +375,8 @@ const Account = () => {
 											}}
 										>
 											<form
-												name="magico"
-												id="magico"
+												name="addhostform"
+												id="addhostform"
 												method="post"
 												autoComplete="off"
 												onSubmit={addHostname}
@@ -443,128 +462,143 @@ const Account = () => {
 													</font>{" "}
 													Linked Hostnames
 												</label>
+												{data?.data.length === 0 && (
+													<p className="small text-muted">
+														<i>
+															(please add at least
+															one hostname)
+														</i>
+													</p>
+												)}
 											</div>
 										</div>
 									</div>
 									{/* start IF */}
 
-									<form
-										name="linksHost"
-										method="post"
-										autoComplete="off"
-										onSubmit={updateHostname}
-									>
-										<div>
-											<div className="row">
-												<div className="col-lg-6">
-													<div className="form-group focused">
-														<label
-															className="form-control-label"
-															htmlFor="input-username"
-														>
-															Hostnames
-														</label>
-														<select
-															id="current_hosts"
-															name="host"
-															className="form-control"
-															onChange={
-																handleSelect
-															}
-														>
-															{data?.data
-																.length ===
-																0 && (
-																<option
-																	data-id
-																	defaultValue="1"
-																>
-																	select
-																	hostname
-																</option>
-															)}
-															{/* start map */}
-															{data?.data &&
-																data?.data.map(
-																	(
-																		host,
-																		index
-																	) => (
-																		<option
-																			key={
-																				index
-																			}
-																			value={
-																				host?.id
-																			}
-																			data-id={
-																				host?.rlinks
-																			}
-																		>
-																			{
-																				host?.host
-																			}
-																		</option>
-																	)
+									{data?.data.length > 0 && (
+										<form
+											name="linksHost"
+											method="post"
+											autoComplete="off"
+											onSubmit={updateHostname}
+										>
+											<div>
+												<div className="row">
+													<div className="col-lg-6">
+														<div className="form-group focused">
+															<label
+																className="form-control-label"
+																htmlFor="input-username"
+															>
+																Hostnames
+															</label>
+															<select
+																id="current_hosts"
+																name="host"
+																className="form-control"
+																onChange={
+																	handleSelect
+																}
+															>
+																{data?.data
+																	.length ===
+																	0 && (
+																	<option
+																		data-id
+																		defaultValue="1"
+																	>
+																		select
+																		hostname
+																	</option>
 																)}
-															{/* end map */}
-														</select>
+																{/* start map */}
+																{data?.data &&
+																	data?.data.map(
+																		(
+																			host,
+																			index
+																		) => (
+																			<option
+																				key={
+																					index
+																				}
+																				value={
+																					host?.id
+																				}
+																				data-id={
+																					host?.rlinks
+																				}
+																			>
+																				{
+																					host?.host
+																				}
+																			</option>
+																		)
+																	)}
+																{/* end map */}
+															</select>
+														</div>
 													</div>
-												</div>
-												<div className="col-lg-6">
-													<div className="form-group">
-														<label
-															className="form-control-label"
-															htmlFor="input-email"
+													<div className="col-lg-6">
+														<div className="form-group">
+															<label
+																className="form-control-label"
+																htmlFor="input-email"
+															>
+																Scampages Links
+															</label>
+															<textarea
+																rows={6}
+																id="links_cc"
+																name="links"
+																className="form-control form-control-alternative"
+																placeholder="scampages links related to the hostname"
+																defaultValue={
+																	linksList
+																}
+															/>
+														</div>
+														<button
+															style={{
+																float: "right",
+																marginBottom:
+																	"5%",
+																marginTop: "5%",
+																marginLeft:
+																	"3%",
+															}}
+															type="submit"
+															className="btn btn-info"
+															name="action"
+															data-action="update"
+															id="upbtn"
 														>
-															Scampages Links
-														</label>
-														<textarea
-															rows={6}
-															id="links_cc"
-															name="links"
-															className="form-control form-control-alternative"
-															placeholder="scampages links related to the hostname"
-															defaultValue={
-																linksList
+															Update Links
+														</button>
+														<button
+															id="rmbtn"
+															type="button"
+															data-action="delete"
+															className="btn btn-danger"
+															onClick={(e) =>
+																removeHostname(
+																	e
+																)
 															}
-														/>
+															style={{
+																float: "right",
+																marginBottom:
+																	"5%",
+																marginTop: "5%",
+															}}
+														>
+															Remove Hostname
+														</button>
 													</div>
-													<button
-														style={{
-															float: "right",
-															marginBottom: "5%",
-															marginTop: "5%",
-															marginLeft: "3%",
-														}}
-														type="submit"
-														className="btn btn-info"
-														name="action"
-														data-action="update"
-														id="upbtn"
-													>
-														Update Links
-													</button>
-													<button
-														id="rmbtn"
-														type="button"
-														data-action="delete"
-														className="btn btn-danger"
-														onClick={(e) =>
-															removeHostname(e)
-														}
-														style={{
-															float: "right",
-															marginBottom: "5%",
-															marginTop: "5%",
-														}}
-													>
-														Remove Hostname
-													</button>
 												</div>
 											</div>
-										</div>
-									</form>
+										</form>
+									)}
 									{/* end if */}
 								</div>
 							</div>
@@ -577,9 +611,18 @@ const Account = () => {
 					<div className="col-xl-6 m-auto text-center">
 						<div className="copyright">
 							<p>
-								Made By{" "}
-								<a href="#" title="FGanonyme">
-									FGanonyme
+								made with{" "}
+								<FaHeart
+									style={{ height: "14px" }}
+									color="red"
+								/>{" "}
+								by{" "}
+								<a
+									href="https://t.me/fg_anonyme"
+									target="_blank"
+									title="FGanonyme"
+								>
+									fganonyme
 								</a>{" "}
 								© 2022
 							</p>
